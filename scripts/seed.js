@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../src/models/User');
 const { Docente, Aluno } = require('../src/models/People');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/tc4';
+const MONGO_URI = process.env.MONGO_URL || 'mongodb://localhost:27017/blog';
 
 async function run() {
   await mongoose.connect(MONGO_URI);
