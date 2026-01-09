@@ -1,36 +1,60 @@
-// scripts/seed.js
 require('dotenv').config();
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const User = require('../src/models/User');
-const { Docente, Aluno } = require('../src/models/People');
+const Post = require('../src/models/Post');
+const People = require('../src/models/People');
 
-const MONGO_URI = process.env.MONGO_URL || 'mongodb://localhost:27017/blog';
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/blog';
 
-async function run() {
-  await mongoose.connect(MONGO_URI);
-  await User.deleteMany({});
-  await Docente.deleteMany({});
-  await Aluno.deleteMany({});
+const seed = async () => {
+  try {
+    await mongoose.connect(MONGO_URL);
+    console.log('🌱 Conectado ao MongoDB para Seed...');
 
-  const passProf = await bcrypt.hash('prof123', 10);
-  const passAluno = await bcrypt.hash('aluno123', 10);
+    await User.deleteMany({});
+    await Post.deleteMany({});
+    await People.deleteMany({});
 
-  await User.create({ name: 'Prof. Bruna', email: 'prof@fiap.com', passwordHash: passProf, role: 'professor' });
-  await User.create({ name: 'Aluno Demo', email: 'aluno@fiap.com', passwordHash: passAluno, role: 'aluno' });
+    console.log('👤 Criando usuários de acesso...');
+    
+    // PROFESSOR (ADMIN)
+    await User.create({
+      name: 'Professor Admin',
+      email: 'prof@fiap.com',
+      password: 'prof123',
+      role: 'professor'
+    });
 
-  await Docente.insertMany([
-    { nome: 'Gustavo Oliveira', email: 'gustavo@fiap.com' },
-    { nome: 'Carla Souza', email: 'carla@fiap.com' }
-  ]);
+    // ALUNO (VISITANTE)
+    await User.create({
+      name: 'Aluno Visitante',
+      email: 'aluno@fiap.com',
+      password: 'aluno123',
+      role: 'aluno'
+    });
 
-  await Aluno.insertMany([
-    { nome: 'João Silva', email: 'joao@fiap.com' },
-    { nome: 'Maria Santos', email: 'maria@fiap.com' }
-  ]);
+    console.log('📝 Criando registros de alunos e docentes...');
+    
+    await People.create([
+      { nome: 'Carlos Silva', email: 'carlos.silva@fiap.com', type: 'aluno' },
+      { nome: 'Beatriz Costa', email: 'bia.costa@fiap.com', type: 'aluno' },
+      { nome: 'João Pedro', email: 'jp.souza@fiap.com', type: 'aluno' },
+      { nome: 'Roberto Docente', email: 'roberto@fiap.com', type: 'docente' },
+      { nome: 'Ana Professora', email: 'ana@fiap.com', type: 'docente' }
+    ]);
 
-  console.log('Seed concluído.');
-  process.exit(0);
-}
+    console.log('📰 Criando posts...');
+    await Post.create([
+      { title: 'Volta às Aulas', content: 'As aulas retornarão dia 05.', author: 'Secretaria' },
+      { title: 'Hackathon FIAP', content: 'Inscreva-se no evento anual de tecnologia.', author: 'Coordenação' }
+    ]);
 
-run().catch(err => { console.error(err); process.exit(1); });
+    console.log('✅ Seed concluído com sucesso!');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Erro no seed:', error);
+    process.exit(1);
+  }
+};
+
+seed();
